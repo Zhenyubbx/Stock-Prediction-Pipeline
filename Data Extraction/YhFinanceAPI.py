@@ -1,6 +1,7 @@
 import requests
 import os
 from dotenv import load_dotenv
+import configparser
 
 url = "https://yh-finance.p.rapidapi.com/stock/v3/get-historical-data"
 
@@ -8,8 +9,11 @@ querystring = {"symbol":"meta","region":"US"}
 
 load_dotenv()
 
+config = configparser.ConfigParser()
+config.read('config.ini')
+
 headers = {
-	"X-RapidAPI-Key": f"{os.getenv('RAPID_API_KEY')}",
+	"X-RapidAPI-Key": f"{config['yhFinance']['RAPID_API_KEY']}",
 	"X-RapidAPI-Host": "yh-finance.p.rapidapi.com"
 }
 
