@@ -1,14 +1,11 @@
 import requests
 import os
 import json
-import csv
 from datetime import datetime, timedelta
 
 current_time = datetime.utcnow()
 ten_seconds = timedelta(seconds=10)
 end_time = current_time - ten_seconds
-
-
 
 # To set your environment variables in your terminal run the following line:
 # export 'BEARER_TOKEN'='<your_bearer_token>'
@@ -29,7 +26,6 @@ def bearer_oauth(r):
     """
     Method required by bearer token authentication.
     """
-
     r.headers["Authorization"] = f"Bearer {bearer_token}"
     r.headers["User-Agent"] = "v2RecentSearchPython"
     return r
@@ -41,7 +37,6 @@ def connect_to_endpoint(url, params):
         raise Exception(response.status_code, response.text)
     return response.json()
 
-
 def main():
     # Get 20 tweets from April 17
     json_response_17 = connect_to_endpoint(search_url, query_params_17)
@@ -51,23 +46,30 @@ def main():
     json_response_16 = connect_to_endpoint(search_url, query_params_16)
     tweets_16 = json_response_16['data']
     
-    with open('tsla_tweets.csv', mode='w', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Time', 'User', 'Tweet'])
+    with open('tsla_tweets.json', mode='w') as file:
+        data = []
         
         for tweet in tweets_17:
-            created_at = tweet['created_at']
-            author_name = tweet['author_id']
-            text = tweet['text']
-            writer.writerow([created_at, author_name, text])
+            data.append({
+                'Time': tweet['created_at'],
+                'User': tweet['author_id'],
+                'Tweet': tweet['text']
+            })
             
         for tweet in tweets_16:
-            created_at = tweet['created_at']
-            author_name = tweet['author_id']
-            text = tweet['text']
-            writer.writerow([created_at, author_name, text])
+            data.append({
+                'Time': tweet['created_at'],
+                'User': tweet['author_id'],
+                'Tweet': tweet['text']
+            })
+        
+        json.dump(data, file, indent=2)
             
-    print("CSV file successfully written.")
+    with open('tsla_tweets.json') as file:
+        print(file.read())
+            
+    print("JSON file successfully written.")
+
 
 if __name__ == "__main__":
     main()
