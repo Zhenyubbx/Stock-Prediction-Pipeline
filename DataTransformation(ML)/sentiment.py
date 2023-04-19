@@ -126,4 +126,3 @@ def test_predict_with_linear_model(ytdPrice):
 
 # print(test_predict_with_linear_model())
 
-
