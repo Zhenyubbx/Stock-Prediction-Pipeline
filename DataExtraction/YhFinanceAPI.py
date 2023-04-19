@@ -32,9 +32,13 @@ history = yf.download("tsla", start=start_date, end=end_date, interval='1d', pre
 history = history.loc[:, ['Open', 'Close', 'Volume']]
 history.reset_index(inplace=True)
 history['Date'] = history['Date'].apply(formatDate)
-print(type(history['Date'][0]))
-print(history)
-history.to_gbq("is3107-project-383009.Dataset.tslaStock2", project_id="is3107-project-383009")
+history = history.dropna()
+history["Date"] = pd.to_datetime(history["Date"])
+sorted_hist = history.sort_values(by='Date', ascending=False)
+# history['Date'] = history['Date'].astype(str)
+print(type(sorted_hist['Date'][0]))
+print(sorted_hist)
+sorted_hist.to_gbq("is3107-project-383009.Dataset.tslaStock", project_id="is3107-project-383009", if_exists='replace')
 
 # responseJson = response.json()
 # filtered_data = []

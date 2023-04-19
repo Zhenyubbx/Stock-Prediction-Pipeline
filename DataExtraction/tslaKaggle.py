@@ -36,6 +36,11 @@ df["Tweet Text"] = df["Tweet Text"].str.replace(r"#\S+", "")
 df["Tweet Text"] = df["Tweet Text"].str.strip()
 df.reset_index(inplace=False)
 df = df.rename(columns={"Tweet Text": "Tweet", "Date & Time" : "Date"})
+
+df = df.dropna()
+df["Date"] = pd.to_datetime(df["Date"])
+df = df.sort_values(by='Date', ascending=False)
+
 # Write the cleaned data to a new CSV file
 df.to_csv("cleaned_hashtag_tesla_TweetTexts.csv", index=False)
-df.to_gbq("is3107-project-383009.Dataset.tslaTweetsKaggle", project_id="is3107-project-383009")
+df.to_gbq("is3107-project-383009.Dataset.tslaTweetsKaggle", project_id="is3107-project-383009", if_exists='replace')
