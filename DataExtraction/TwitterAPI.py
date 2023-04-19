@@ -15,14 +15,7 @@ bearer_token = "AAAAAAAAAAAAAAAAAAAAACYhmwEAAAAAl7HpRkqggtVjTCj0LmMI1nMYaQg%3Dp6
 
 search_url = "https://api.twitter.com/2/tweets/search/recent"
 
-# Optional params: start_time,end_time,since_id,until_id,max_results,next_token,
-# expansions,tweet.fields,media.fields,poll.fields,place.fields,user.fields
-query_params_17 = {'query': '#tsla', 'max_results': '100', 'tweet.fields': 'created_at,author_id',
-                   'start_time': '2023-04-17T00:00:00Z', 'end_time': '2023-04-17T23:59:59Z'} # end_time.strftime('%Y-%m-%dT%H:%M:%SZ')
-
-
-query_params_16 = {'query': '#tsla', 'max_results': '100', 'tweet.fields': 'created_at,author_id',
-                   'start_time': '2023-04-16T00:00:00Z', 'end_time': '2023-04-16T23:59:59Z'}
+query_params = {'query': '#tsla', 'max_results': '100', 'tweet.fields': 'created_at,author_id'}
 
 def bearer_oauth(r):
     """
@@ -40,30 +33,27 @@ def connect_to_endpoint(url, params):
     return response.json()
 
 def main():
-    # Get 100 tweets from April 16
-    json_response_16 = connect_to_endpoint(search_url, query_params_16)
-    print("Successfully pulled " + str(len(json_response_16['data'])) + " from Tweepy!")
+    tweets = []
+
     
-    # Get 99 tweets from April 17
-    json_response_17 = connect_to_endpoint(search_url, query_params_17)
-    print("Successfully pulled " + str(len(json_response_17['data'])) + " from Tweepy!")
-    
+    for page in range(10):
+        query_params['next_token'] = None
+        json_response = connect_to_endpoint(search_url, query_params)
+        tweets += json_response['data']
+        print(f"Successfully pulled {len(json_response['data'])} tweets from Tweepy! Page {page+1}")
+
+        if 'next_token' in json_response['meta']:
+            query_params['next_token'] = json_response['meta']['next_token']
+        else:
+            break
+
     with open('tsla_tweets.json', mode='w') as file:
         data_list = []
-        
-        for tweet in json_response_17['data']:
+
+        for tweet in tweets:
             date = datetime.strptime(str(tweet['created_at'].replace("Z", "")), '%Y-%m-%dT%H:%M:%S.000')
             data_list.append({
                 'Date': str(date.strftime('%Y-%m-%d')),
-                'User': tweet['author_id'],
-                'Tweet': tweet['text']
-            })
-            
-        for tweet in json_response_16['data']:
-            date = datetime.strptime(str(tweet['created_at'].replace("Z", "")), '%Y-%m-%dT%H:%M:%S.000')
-            data_list.append({
-                'Date': str(date.strftime('%Y-%m-%d')),
-                'User': tweet['author_id'],
                 'Tweet': tweet['text']
             })
 
@@ -82,7 +72,7 @@ def main():
         combined['Tweet'] = combined['Tweet'].astype(str) #Change the tweet data type from object to string
         combined['Tweet'] = combined['Tweet'].apply(cleanText)
         print(combined)
-        combined.to_gbq("is3107-project-383009.Dataset.tslaTweets1617Apr", project_id="is3107-project-383009")
+        combined.to_gbq("is3107-project-383009.Dataset.tslaTweetsRealTime", project_id="is3107-project-383009")
     
     with open('tsla_tweets.json') as file:
         print(file.read())
