@@ -34,6 +34,8 @@ df["Tweet Text"] = df["Tweet Text"].str.replace(r"#\S+", "")
 
 # Remove leading and trailing whitespace from the Tweet Text text
 df["Tweet Text"] = df["Tweet Text"].str.strip()
-
+df.reset_index(inplace=False)
+df = df.rename(columns={"Tweet Text": "Tweet", "Date & Time" : "Date"})
 # Write the cleaned data to a new CSV file
 df.to_csv("cleaned_hashtag_tesla_TweetTexts.csv", index=False)
+df.to_gbq("is3107-project-383009.Dataset.tslaTweetsKaggle", project_id="is3107-project-383009")

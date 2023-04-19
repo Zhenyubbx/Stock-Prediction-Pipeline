@@ -13,7 +13,7 @@ def queryStockFromBigQuery():
     # Set the destination table
     table = client.dataset(dataset_id='is3107-project-383009.Dataset').table(table_id="is3107-project-383009.Dataset.tslaStock")
     job_config.destination = table
-    query = "SELECT * FROM `is3107-project-383009.Dataset.tslaStock2` LIMIT 100"
+    query = "SELECT * FROM `is3107-project-383009.Dataset.tslaStock2`"
     return client.query(query).to_dataframe()
 
 def queryTweetsFromBigQuery():
@@ -25,7 +25,7 @@ def queryTweetsFromBigQuery():
     # Set the destination table
     table = client.dataset(dataset_id='is3107-project-383009.Dataset').table(table_id="is3107-project-383009.Dataset.tslaTweets1617Apr")
     job_config.destination = table
-    query = "SELECT * FROM `is3107-project-383009.Dataset.tslaTweets1617Apr` LIMIT 100"
+    query = "SELECT * FROM `is3107-project-383009.Dataset.tslaTweetsKaggle`"
     return client.query(query).to_dataframe()
 
 def train(stockDf, TweetsDf):
