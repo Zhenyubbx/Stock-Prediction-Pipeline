@@ -1,9 +1,8 @@
 import requests
-import os
-import json
 from datetime import datetime, timedelta
 import pandas as pd
 import re
+from langdetect import detect
 
 current_time = datetime.utcnow()
 ten_seconds = timedelta(seconds=10)
@@ -32,6 +31,20 @@ def connect_to_endpoint(url, params):
         raise Exception(response.status_code, response.text)
     return response.json()
 
+def cleanText(text):
+
+  lang = detect(text) 
+
+  if lang == 'en': 
+    text = re.sub(r'@[A-Za-z0-9]+', '', text) #Removes @mentions
+    text = re.sub(r'#', '', text) #Removes the # symbol
+    text = re.sub(r'RT[\s]+', '', text) #Removes RT
+    text = re.sub(r'https?:\/\/\S+','', text) #Removes hyperlinks
+    #not cleaning emojis as the vader sentiment analysis takes those into account 
+    return text
+  else:
+    return None #Removes non-english tweets
+
 def main():
     tweets = []
 
@@ -59,25 +72,16 @@ def main():
 
         combined = pd.DataFrame(data=data_list)
 
-        def cleanText(text):
-            text = re.sub(r'@[A-Za-z0-9]+', '', text) #Removes @mentions
-            text = re.sub(r'#', '', text) #Removes the # symbol
-            text = re.sub(r'RT[\s]+', '', text) #Removes RT
-            text = re.sub(r'https?:\/\/\S+','', text) #Removes hyperlinks
-            #not cleaning emojis as the vader sentiment analysis takes those into account 
-
-            return text
-
         #Clean text and return
         combined['Tweet'] = combined['Tweet'].astype(str) #Change the tweet data type from object to string
         combined['Tweet'] = combined['Tweet'].apply(cleanText)
         print(combined)
         combined.to_gbq("is3107-project-383009.Dataset.tslaTweetsRealTime", project_id="is3107-project-383009")
     
-    with open('tsla_tweets.json') as file:
-        print(file.read())
+    # with open('tsla_tweets.json') as file:
+    #     print(file.read())
             
-    print("JSON file successfully written.")
+    # print("JSON file successfully written.")
 
 
 if __name__ == "__main__":

@@ -23,11 +23,18 @@ from datetime import timedelta, datetime
 end_date = datetime.now()
 start_date = end_date - timedelta(days=15*365)
 
+def formatDate(date):
+    date= datetime.strptime(str(str(date).replace(" 00:00:00", "")), '%Y-%m-%d')
+    return str(date.strftime('%Y-%m-%d'))
+
 # Download data from Yahoo Finance
 history = yf.download("tsla", start=start_date, end=end_date, interval='1d', prepost=False)
 history = history.loc[:, ['Open', 'Close', 'Volume']]
 history.reset_index(inplace=True)
-history.to_gbq("is3107-project-383009.Dataset.tslaStock", project_id="is3107-project-383009")
+history['Date'] = history['Date'].apply(formatDate)
+print(type(history['Date'][0]))
+print(history)
+history.to_gbq("is3107-project-383009.Dataset.tslaStock2", project_id="is3107-project-383009")
 
 # responseJson = response.json()
 # filtered_data = []

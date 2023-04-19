@@ -1,2 +1,4 @@
 /DataExtraction/config.ini
+/DataExtraction/config.ini
+/DataExtraction/__pycache__/
 venv/
