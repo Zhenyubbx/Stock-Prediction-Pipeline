@@ -10,7 +10,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.sentiment.util import *
 
 def load_csv():
-    df = pd.read_csv("/Users/darryl/airflow/dags/tesla_kaggle.csv")
+    df = pd.read_csv("tesla_kaggle.csv")
     df = df[["Date & Time", "Tweet Text"]]
     print("Successfully loaded!")
     return df
@@ -24,6 +24,7 @@ def filter_valid_dates(date_str):
 
 def clean_data():
     df = load_csv()
+    print(df)
     valid_dates_mask = df['Date & Time'].apply(filter_valid_dates)
     df = df[valid_dates_mask]
     print(df["Date & Time"])
@@ -33,25 +34,30 @@ def clean_data():
     df["Tweet Text"] = df["Tweet Text"].str.replace(r"@\S+", "")
     df["Tweet Text"] = df["Tweet Text"].str.replace(r"#\S+", "")
     df["Tweet Text"] = df["Tweet Text"].str.strip()
-    df.to_csv("cleaned_hashtag_tesla_TweetTextsTEST.csv", index=False)
+    df.reset_index(inplace=False)
+    df = df.rename(columns={"Tweet Text": "Tweet", "Date & Time" : "Date"})
+    df = df.dropna()
+    df["Date"] = pd.to_datetime(df["Date"])
+    df = df.sort_values(by='Date', ascending=False)
+    # df.to_csv("cleaned_hashtag_tesla_TweetTextsTEST.csv", index=False)
     print("successfully cleaned!")
-    print(type(df))
+    # print(type(df))
     return df
 
 
 def sentiment_score_transform(data):
-    df = pd.read_csv("/Users/darryl/cleaned_hashtag_tesla_TweetTextsTEST.csv")
-    print(type(df))
-    df['Tweet Text'] = df['Tweet Text'].astype(str)
-    df['Date & Time'] = df['Date & Time'].astype(str)
-    df.dropna(subset=['Tweet Text', 'Date & Time'], inplace=False)
-    df["Tweet Text"] = df["Tweet Text"].str.strip()
-    df.reset_index(inplace=False)
+    # df = pd.read_csv("/Users/darryl/cleaned_hashtag_tesla_TweetTextsTEST.csv")
+    print(type(data))
+    # df['Tweet Text'] = df['Tweet Text'].astype(str)
+    # df['Date & Time'] = df['Date & Time'].astype(str)
+    data.dropna(subset=['Tweet'], inplace=True) #drop rows with na values in Tweet column
+    data.reset_index(drop=True, inplace=True) #reset indexes and drop the old index column
     sia = SentimentIntensityAnalyzer()
-    df['Sentiments'] = df['Tweet Text'].apply(lambda Tweet: sia.polarity_scores(Tweet))
-    df = pd.concat([df.drop(['Sentiments'], axis=1), df['Sentiments'].apply(pd.Series)], axis=1)
-    df.to_gbq("is3107-project-383009.Dataset.tslaStockAnalysed2", project_id="is3107-project-383009")
-    print("successfully LOADED!")
+    data['Sentiments'] = data['Tweet'].apply(lambda Tweet: sia.polarity_scores(Tweet))
+    data = pd.concat([data.drop(['Sentiments'], axis=1), data['Sentiments'].apply(pd.Series)], axis=1)
+    data.to_gbq("is3107-project-383009.Dataset.tslaStockAnalysed", project_id="is3107-project-383009", if_exists='replace')
+    # print("successfully LOADED!")
+    print(data)
 
 
 default_args = {
