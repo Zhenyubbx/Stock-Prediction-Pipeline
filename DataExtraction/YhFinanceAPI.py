@@ -19,11 +19,10 @@ from datetime import timedelta, datetime
 
 # response = requests.request("GET", url, headers=headers, params=querystring)
 
-# Fetch the most popular stocks from Yahoo Finance
-popular_stocks = yf.Tickers(" ".join(yf.Ticker("msft").recommendations.index[:5].tolist()))
-
-# Get the ticker symbols for the top 25 most watched stocks
-top_watched = popular_stocks.tickers[:25]
+# Define the list of tickers for the top 25 most watched stocks
+tickers = ['TSLA' 'MSFT' 'PG' 'META' 'AMZN' 'GOOG' 'AMD' 'AAPL' 'NFLX' 'TSM' 'KO'
+'F' 'COST' 'DIS' 'VZ' 'CRM' 'INTC' 'BA' 'BX' 'NOC' 'PYPL' 'ENPH' 'NIO'
+'ZS' 'XPEV']
 
 
 # Set start & end date of stock market data
@@ -35,7 +34,7 @@ def formatDate(date):
     return str(date.strftime('%Y-%m-%d'))
 
 # Download data from Yahoo Finance
-for ticker in top_watched:
+for ticker in tickers:
     history = yf.download(ticker, start=start_date, end=end_date, interval='1d', prepost=False)
     history = history.loc[:, ['Open', 'Close', 'Volume']]
     history.reset_index(inplace=True)
