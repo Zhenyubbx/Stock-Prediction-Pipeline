@@ -20,6 +20,9 @@ from datetime import timedelta, datetime
 # response = requests.request("GET", url, headers=headers, params=querystring)
 
 tickers = pd.read_html('https://en.wikipedia.org/wiki/List_of_S&P_500_companies')
+# Sort the symbols by market cap in descending order
+sorted_Tickers = sorted(tickers, key=lambda x: x.info["marketCap"], reverse=True)
+print(sorted_Tickers[0:10])
 
 
 # Set start & end date of stock market data
@@ -31,7 +34,7 @@ def formatDate(date):
     return str(date.strftime('%Y-%m-%d'))
 
 # Download data from Yahoo Finance
-for ticker in tickers:
+for ticker in sorted_Tickers:
     history = yf.download(ticker, start=start_date, end=end_date, interval='1d', prepost=False)
     history = history.loc[:, ['Open', 'Close', 'Volume']]
     history.reset_index(inplace=True)
