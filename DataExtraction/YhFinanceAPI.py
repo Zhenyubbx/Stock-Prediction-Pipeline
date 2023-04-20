@@ -19,10 +19,11 @@ from datetime import timedelta, datetime
 
 # response = requests.request("GET", url, headers=headers, params=querystring)
 
-tickers = pd.read_html('https://en.wikipedia.org/wiki/List_of_S&P_500_companies')
-# Sort the symbols by market cap in descending order
-sorted_Tickers = sorted(tickers, key=lambda x: x.info["marketCap"], reverse=True)
-print(sorted_Tickers[0:10])
+# Fetch the most popular stocks from Yahoo Finance
+popular_stocks = yf.Tickers(" ".join(yf.Ticker("msft").recommendations.index[:5].tolist()))
+
+# Get the ticker symbols for the top 25 most watched stocks
+top_watched = popular_stocks.tickers[:25]
 
 
 # Set start & end date of stock market data
@@ -34,13 +35,15 @@ def formatDate(date):
     return str(date.strftime('%Y-%m-%d'))
 
 # Download data from Yahoo Finance
-for ticker in sorted_Tickers:
+for ticker in top_watched:
     history = yf.download(ticker, start=start_date, end=end_date, interval='1d', prepost=False)
     history = history.loc[:, ['Open', 'Close', 'Volume']]
     history.reset_index(inplace=True)
     history['Date'] = history['Date'].apply(formatDate)
     history = history.dropna()
     history["Date"] = pd.to_datetime(history["Date"])
+    history['Symbol'] = ticker
+    sorted_hist = history.sort_values(by='Ticker', ascending=True)
     sorted_hist = history.sort_values(by='Date', ascending=False)
     # history['Date'] = history['Date'].astype(str)
     # print(type(sorted_hist['Date'][0]))
