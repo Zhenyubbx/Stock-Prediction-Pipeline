@@ -20,10 +20,11 @@ from datetime import timedelta, datetime
 # response = requests.request("GET", url, headers=headers, params=querystring)
 
 # Define the list of tickers for the top 25 most watched stocks
-tickers = ['TSLA' 'MSFT' 'PG' 'META' 'AMZN' 'GOOG' 'AMD' 'AAPL' 'NFLX' 'TSM' 'KO'
-'F' 'COST' 'DIS' 'VZ' 'CRM' 'INTC' 'BA' 'BX' 'NOC' 'PYPL' 'ENPH' 'NIO'
-'ZS' 'XPEV']
+tickers = ['TSLA', 'MSFT' ,'PG' ,'META' ,'AMZN' ,'GOOG' ,'AMD' ,'AAPL' ,'NFLX' ,'TSM' ,'KO'
+,'F' ,'COST' ,'DIS', 'VZ' ,'CRM' ,'INTC' ,'BA' ,'BX' ,'NOC', 'PYPL' ,'ENPH', 'NIO',
+'ZS' ,'XPEV']
 
+stocks_data = pd.DataFrame()
 
 # Set start & end date of stock market data
 end_date = datetime.now()
@@ -42,12 +43,19 @@ for ticker in tickers:
     history = history.dropna()
     history["Date"] = pd.to_datetime(history["Date"])
     history['Symbol'] = ticker
-    sorted_hist = history.sort_values(by='Ticker', ascending=True)
+    # sorted_hist = history.sort_values(by='Symbol', ascending=True)
     sorted_hist = history.sort_values(by='Date', ascending=False)
+
+    stocks_data = pd.concat([stocks_data, sorted_hist], axis=0)
+
     # history['Date'] = history['Date'].astype(str)
     # print(type(sorted_hist['Date'][0]))
     # print(sorted_hist)
-    sorted_hist.to_gbq("is3107-project-383009.Dataset.Stocks", project_id="is3107-project-383009", if_exists='replace')
+
+
+
+    
+stocks_data.to_gbq("is3107-project-383009.Dataset.StockData", project_id="is3107-project-383009", if_exists='replace')
 
 # responseJson = response.json()
 # filtered_data = []

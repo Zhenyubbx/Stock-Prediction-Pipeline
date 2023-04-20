@@ -9,55 +9,64 @@ from nltk.corpus import subjectivity
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.sentiment.util import *
 
-def load_csv():
-    df = pd.read_csv("tesla_kaggle.csv")
-    df = df[["Date & Time", "Tweet Text"]]
-    print("Successfully loaded!")
+def extraction_of_tweets():
+    df = pd.read_csv("/Users/darryl/airflow/dags/stock_tweets.csv")
+    df = df[["Date", "Tweet", "Stock Name"]]
+    df = df.rename(columns={"Date": "Date", "Tweet" : "Tweet", "Stock Name": "StockName"})
+    print("Successfully extracted batch data!")
     return df
 
 def filter_valid_dates(date_str):
     try:
-        datetime.strptime(date_str, '%B %d, %Y at %I:%M%p')
+        datetime.strptime(date_str, '%Y-%m-%d %H:%M:%S%z')
         return True
     except ValueError:
         return False
 
 def clean_data():
-    df = load_csv()
-    print(df)
-    valid_dates_mask = df['Date & Time'].apply(filter_valid_dates)
+    df = extraction_of_tweets()
+    valid_dates_mask = df['Date'].apply(filter_valid_dates)
     df = df[valid_dates_mask]
-    print(df["Date & Time"])
-    df["Date & Time"] = pd.to_datetime(df["Date & Time"], format="%B %d, %Y at %I:%M%p")
-    df["Date & Time"] = df["Date & Time"].dt.strftime("%Y-%m-%d")
-    df["Tweet Text"] = df["Tweet Text"].str.replace(r"http\S+", "")
-    df["Tweet Text"] = df["Tweet Text"].str.replace(r"@\S+", "")
-    df["Tweet Text"] = df["Tweet Text"].str.replace(r"#\S+", "")
-    df["Tweet Text"] = df["Tweet Text"].str.strip()
-    df.reset_index(inplace=False)
-    df = df.rename(columns={"Tweet Text": "Tweet", "Date & Time" : "Date"})
-    df = df.dropna()
+    print(df["Date"])
+    df["Date"] = pd.to_datetime(df["Date"], format="%Y-%m-%d %H:%M:%S%z")
+    df["Date"] = df["Date"].dt.strftime("%Y-%m-%d")
+    df["Tweet"] = df["Tweet"].str.replace(r"http\S+", "")
+    df["Tweet"] = df["Tweet"].str.replace(r"@\S+", "")
+    df["Tweet"] = df["Tweet"].str.replace(r"#\S+", "")
+    df["Tweet"] = df["Tweet"].str.strip()
+    print("Successfully cleaned!")
+    df.dropna()
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values(by='Date', ascending=False)
-    # df.to_csv("cleaned_hashtag_tesla_TweetTextsTEST.csv", index=False)
-    print("successfully cleaned!")
-    # print(type(df))
+    df.reset_index(inplace=False)
+    df.to_csv("/Users/darryl/airflow/dags/allTweetsKaggleCleaned.csv", index=False)
+    df.to_gbq("is3107-project-383009.Dataset.allStockTweetsCleaned", project_id="is3107-project-383009", if_exists='replace')
+    print("Successfully loaded cleaned data into GBQ!")
     return df
 
 
-def sentiment_score_transform(data):
-    # df = pd.read_csv("/Users/darryl/cleaned_hashtag_tesla_TweetTextsTEST.csv")
-    print(type(data))
-    # df['Tweet Text'] = df['Tweet Text'].astype(str)
-    # df['Date & Time'] = df['Date & Time'].astype(str)
+def transform(**context):
+    data = context['ti'].xcom_pull(task_ids='clean_data')
+
+#    data = pd.read_csv("allTweetsKaggleCleaned.csv")
     data.dropna(subset=['Tweet'], inplace=True) #drop rows with na values in Tweet column
     data.reset_index(drop=True, inplace=True) #reset indexes and drop the old index column
     sia = SentimentIntensityAnalyzer()
     data['Sentiments'] = data['Tweet'].apply(lambda Tweet: sia.polarity_scores(Tweet))
     data = pd.concat([data.drop(['Sentiments'], axis=1), data['Sentiments'].apply(pd.Series)], axis=1)
-    data.to_gbq("is3107-project-383009.Dataset.tslaStockAnalysed", project_id="is3107-project-383009", if_exists='replace')
-    # print("successfully LOADED!")
-    print(data)
+    print("Sentiment analysed and scored!")
+    # print(data)
+    return data
+
+def load(**context):
+    data = context['ti'].xcom_pull(task_ids='transform')
+    data.to_gbq("is3107-project-383009.Dataset.kaggleSentimentAnalysed", project_id="is3107-project-383009", if_exists='replace')
+    return data
+
+
+
+    
+    
 
 
 default_args = {
@@ -77,22 +86,29 @@ with DAG(dag_id='tesla_sentiment_analysis',
          schedule_interval=None) as dag:
 
     t1 = PythonOperator(
-        task_id='load_csv',
-        python_callable=load_csv
+        task_id='extraction_of_tweets',
+        python_callable=extraction_of_tweets
     )
 
     t2 = PythonOperator(
         task_id='clean_data',
         python_callable=clean_data,
-        op_kwargs={'return_value': True},
         provide_context=True
     )
 
     t3 = PythonOperator(
-        task_id='sentiment_score_transform',
-        python_callable=sentiment_score_transform,
-        op_kwargs={'data': '{{ task_instance.xcom_pull(task_ids="clean_data") }}'}
+        task_id='transform',
+        python_callable=transform,
+        provide_context=True
     )
 
+    t4 = PythonOperator(
+        task_id='load',
+        python_callable=load,
+        provide_context=True
+    )
 
-t1 >> t2 >> t3
+    
+
+
+t1 >> t2 >> t3 >> t4
