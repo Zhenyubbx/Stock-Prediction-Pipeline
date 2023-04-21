@@ -1,4 +1,10 @@
 /DataExtraction/config.ini
-/DataExtraction/config.ini
+/DataTransformation(ML)/.ipynb_checkpoints/
 /DataTransformation(ML)/__pycache__/
+/DataTransformation(ML)/UnusedCodes.py
 venv/
+
+#Checkpoint files
+LinearRegression-checkpoint.ipynb
+SentimentAnalysis(2).ipynb
+Untitled-checkpoint.ipynb

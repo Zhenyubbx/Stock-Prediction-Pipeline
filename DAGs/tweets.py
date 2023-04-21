@@ -3,8 +3,8 @@ import os
 import json
 import csv
 from datetime import datetime, timedelta
-from airflow import DAG
-from airflow.operators.python_operator import PythonOperator
+# from airflow import DAG
+# from airflow.operators.python_operator import PythonOperator
 import yfinance as yf
 import pandas as pd
 import re
@@ -58,7 +58,7 @@ def process_tweets():
     tweets = []
 
     
-    for page in range(100):
+    for page in range(1):
         query_params['next_token'] = None
         json_response = connect_to_endpoint(search_url, query_params)
         tweets += json_response['data']
@@ -86,6 +86,7 @@ def process_tweets():
             text = re.sub(r'#', '', text) #Removes the # symbol
             text = re.sub(r'RT[\s]+', '', text) #Removes RT
             text = re.sub(r'https?:\/\/\S+','', text) #Removes hyperlinks
+
             #not cleaning emojis as the vader sentiment analysis takes those into account 
 
             return text
@@ -94,27 +95,31 @@ def process_tweets():
         combined['Tweet Text'] = combined['Tweet Text'].astype(str) #Change the tweet data type from object to string
         combined['Tweet Text'] = combined['Tweet Text'].apply(cleanText)
         combined.drop_duplicates(subset=['Tweet Text'], inplace=True)
-        combined.to_gbq("is3107-project-383009.Dataset.tslaTweetsRealTime2", project_id="is3107-project-383009")
+        combined.reset_index(inplace=False)
+        combined = combined.rename(columns={"Tweet Text": "Tweet", "Date & Time" : "Date"})
+        # combined.to_gbq("is3107-project-383009.Dataset.tslaTweetsRealTime2", project_id="is3107-project-383009")
 
         print(combined)
 
 
         def sentiment_score_transform(df):
-            df['Tweet Text'] = df['Tweet Text'].astype(str)
-            df['Date & Time'] = df['Date & Time'].astype(str)
-            df.dropna(subset=['Tweet Text', 'Date & Time'], inplace=False)
-            df["Tweet Text"] = df["Tweet Text"].str.strip()
+            # df['Tweet Text'] = df['Tweet Text'].astype(str)
+            # df['Date & Time'] = df['Date & Time'].astype(str)
+            df.dropna(subset=['Tweet', 'Date'], inplace=True)
+            df["Tweet"] = df["Tweet"].str.strip()
             df.reset_index(inplace=False)
+            df["Date"] = pd.to_datetime(df["Date"])
             sia = SentimentIntensityAnalyzer()
-            df['Sentiments'] = df['Tweet Text'].apply(lambda Tweet: sia.polarity_scores(Tweet))
+            df['Sentiments'] = df['Tweet'].apply(lambda Tweet: sia.polarity_scores(Tweet))
             df = pd.concat([df.drop(['Sentiments'], axis=1), df['Sentiments'].apply(pd.Series)], axis=1)
-            df.to_gbq("is3107-project-383009.Dataset.realTimeAnalysed10", project_id="is3107-project-383009")
+            print(df)
+            df.to_gbq("is3107-project-383009.Dataset.realTimeAnalysed11", project_id="is3107-project-383009", if_exists='replace')
             print("successfully LOADED!")
 
         sentiment_score_transform(combined)
 
 
-        
+process_tweets()       
 
 
 
@@ -136,40 +141,40 @@ def download_stock_data():
 ############################################
 
 
-default_args = {
-    'owner': 'airflow',
-    'depends_on_past': False,
-    'start_date': datetime(2023, 4, 17),
-    'retries': 1,
-    'retry_delay': timedelta(minutes=5)
-}
+# default_args = {
+#     'owner': 'airflow',
+#     'depends_on_past': False,
+#     'start_date': datetime(2023, 4, 17),
+#     'retries': 1,
+#     'retry_delay': timedelta(minutes=5)
+# }
 
-dag = DAG(
-    'tsla_tweets_dag',
-    default_args=default_args,
-    catchup=False,
-    schedule_interval='@daily'
-)
-
-
-##########################################
-#3. DEFINE AIRFLOW OPERATORS
-##########################################
+# dag = DAG(
+#     'tsla_tweets_dag',
+#     default_args=default_args,
+#     catchup=False,
+#     schedule_interval='@daily'
+# )
 
 
-with dag:
-    process_tweets_task = PythonOperator(
-        task_id='process_tweets',
-        python_callable=process_tweets,
-    )
+# ##########################################
+# #3. DEFINE AIRFLOW OPERATORS
+# ##########################################
 
-    download_stock_data_task = PythonOperator(
-        task_id='download_stock_data',
-        python_callable=download_stock_data,
-    )
 
-process_tweets_task 
-download_stock_data_task
+# with dag:
+#     process_tweets_task = PythonOperator(
+#         task_id='process_tweets',
+#         python_callable=process_tweets,
+#     )
+
+#     download_stock_data_task = PythonOperator(
+#         task_id='download_stock_data',
+#         python_callable=download_stock_data,
+#     )
+
+# process_tweets_task 
+# download_stock_data_task
 
 
 

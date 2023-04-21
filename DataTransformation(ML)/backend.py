@@ -1,5 +1,5 @@
 from flask import Flask, request
-from sentiment import test_predict_with_linear_model
+from MultiVariateRegression import predict_with_linear_model
 from flask_cors import CORS, cross_origin
 
 app = Flask(__name__)
@@ -10,10 +10,11 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @cross_origin()
 def predict():
     # Get the parameters from the request
-    ytdPrice = request.json['ytdPrice']
+    tdyPrice = request.json['tdyPrice']
+    stock = request.json['stock']
     
     # Call the function with the parameters
-    result = test_predict_with_linear_model(ytdPrice)
+    result = predict_with_linear_model(tdyPrice, stock)
     print(result)
     # result = "hello world"
     
