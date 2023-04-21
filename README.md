@@ -33,3 +33,16 @@ airflow webserver --port 8081 -D
 airflow scheduler
 
 Run the real_time_data_dag and batch_data_dag tasks.
+
+
+## Steps to start simulation of Frontend React Application and Backend Flask Application
+Ensure that all dependencies listed in requirements.txt are installed 
+
+#Frontend
+install npm on ur machine
+run "npm i" in the folder "stock_price_predictor" to install the necessary node modules
+run "npm start" to start the web application on localhost:3000
+
+#Backend
+ensure that flask is installed
+run "python3 backend.py" in the MachineLearning folder to start the backend application on localhost:5000

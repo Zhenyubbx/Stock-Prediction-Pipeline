@@ -1,7 +1,6 @@
 /DataExtraction/config.ini
-/DataTransformation(ML)/.ipynb_checkpoints/
-/DataTransformation(ML)/__pycache__/
-/DataTransformation(ML)/UnusedCodes.py
+/MachineLearning/__pycache__/
+/MachineLearning/UnusedCodes.py
 venv/
 
 #Checkpoint files
