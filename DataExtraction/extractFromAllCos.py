@@ -39,11 +39,6 @@ def clean_data():
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values(by='Date', ascending=False)
     df.reset_index(inplace=False)
-    
-
-    print(df.columns)
-    print(df.index.values)
-    print(df)
     df.to_gbq("is3107-project-383009.Dataset.allStockTweetsCleaned", project_id="is3107-project-383009", if_exists='replace')
     print("Successfully loaded into GBQ!")
     return df

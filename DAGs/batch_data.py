@@ -10,6 +10,7 @@ from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.sentiment.util import *
 
 def extraction_of_tweets():
+    ## change line 14 to your path directory to read csv.
     df = pd.read_csv("/Users/darryl/airflow/dags/stock_tweets.csv")
     df = df[["Date", "Tweet", "Stock Name"]]
     df = df.rename(columns={"Date": "Date", "Tweet" : "Tweet", "Stock Name": "StockName"})
@@ -39,7 +40,7 @@ def clean_data():
     df["Date"] = pd.to_datetime(df["Date"])
     df = df.sort_values(by='Date', ascending=False)
     df.reset_index(inplace=False)
-    df.to_csv("/Users/darryl/airflow/dags/allTweetsKaggleCleaned.csv", index=False)
+    # df.to_csv("/Users/darryl/airflow/dags/allTweetsKaggleCleaned.csv", index=False)
     df.to_gbq("is3107-project-383009.Dataset.allStockTweetsCleaned", project_id="is3107-project-383009", if_exists='replace')
     print("Successfully loaded cleaned data into GBQ!")
     return df
@@ -75,13 +76,13 @@ default_args = {
     'depends_on_past': False,
     'catchup': False,
 }
-dag = DAG('tesla_sentiment_analysis',
+dag = DAG('batch_data_dag',
           default_args=default_args,
-          description='This DAG loads and cleans Tesla tweet data, performs sentiment analysis on the text, and stores the results in a BigQuery table.'
+          description='This DAG loads and cleans kaggle batch tweets data, performs sentiment analysis on the text, and stores the results in a BigQuery table.'
           )
 
 
-with DAG(dag_id='tesla_sentiment_analysis',
+with DAG(dag_id='batch_data_dag',
          default_args=default_args,
          schedule_interval=None) as dag:
 

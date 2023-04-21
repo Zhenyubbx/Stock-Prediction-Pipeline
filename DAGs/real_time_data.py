@@ -22,6 +22,7 @@ from langdetect import detect
 
 
 ##EXTRACTION FROM TWITTER
+#Or insert own bearer token
 bearer_token = "AAAAAAAAAAAAAAAAAAAAACYhmwEAAAAAl7HpRkqggtVjTCj0LmMI1nMYaQg%3Dp6OKovTzZ4XI6GuDfiscptdLvv35yp9LZNnkTShVYTwblI6ARa"
 
 search_url = "https://api.twitter.com/2/tweets/search/recent"
@@ -210,7 +211,7 @@ default_args = {
 }
 
 dag = DAG(
-    'tsla_tweets_dag',
+    'real_time_data_dag',
     default_args=default_args,
     catchup=False,
     schedule_interval='@daily'
@@ -257,12 +258,3 @@ with dag:
 t1 >> t2 >> t3 >> t4
 download_stock_data_task
 
-
-
-
-# Task 1: process and clean tweets
-# Task 2: push to big query
-# Task 3: take from bigquery in json format
-# Task 4: twitter sentiment analysis
-# Task 5: machine learning
-# Task 6:
