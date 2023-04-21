@@ -9,18 +9,22 @@ Prepared by: Chin Zhen Yu, Darryl Ee, Khoo Jing Zhi, Shannon Woo Shu En, Xu Peng
 
 ## Folder/File Structure
 
-DAGs folder:
-- batch_data.py (batch data) & real_time_data.py(real time data) note: change line 14 of batch_data.py to your path directory to read csv.  
-- stock_tweets.csv (Batch Data from Kaggle)
+DAGs folder:  
+batch_data.py (batch data) & real_time_data.py(real time data) note: change line 14 of batch_data.py to your path directory to read csv.  
+stock_tweets.csv (Batch Data from Kaggle) 
+
 Data Extraction:  
-- Archived python files for data extraction
+Archived python files for data extraction  
+
 stock_price_predictor:  
-- Contains frontend javascript files for application simulation
+Contains frontend javascript files for application simulation  
+
 Machine Learning folder:  
-- Trains the 4 machine learning models  
-- Contains backend python file for application simulation
+Trains the 4 machine learning models  
+Contains backend python file for application simulation  
+
 looker_studio_dashboard_link.txt:  
-- Link to Looker Studio Dashboard  
+Link to Looker Studio Dashboard  
 
 ## Steps to get airflow pipeline working
 
