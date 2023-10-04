@@ -2,6 +2,10 @@
 
 Stock Prediction and Sentiment Analysis
 
+## Data Pipeline Architecture
+<img width="936" alt="Data Pipeline Architecture" src="https://github.com/Zhenyubbx/Stock-Prediction-Pipeline/assets/79489486/7fed60f3-0efe-498f-a85f-40b72aabab6d">
+
+
 ## Information
 
 Group: 34  
